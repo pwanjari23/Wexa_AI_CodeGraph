@@ -18,7 +18,7 @@ export default function App() {
         const res = await api.get('/health');
         const connected = res.data.database === 'Connected';
         setDbConnected(connected);
-        if (connected) attempts = 0; // reset on success
+        if (connected) attempts = 0; 
       } catch (err) {
         attempts++;
         console.warn(`Health check failed (attempt ${attempts}):`, err.message);
