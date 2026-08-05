@@ -4,6 +4,8 @@ import api from '../services/api';
 import SearchBar from '../components/SearchBar';
 import { ListSkeleton } from '../components/Skeletons';
 
+const RECENT_LIMIT = 5;
+
 export default function Dashboard({ onSelectApi, dbConnected }) {
   const [allApis, setAllApis] = useState([]);
   const [loadingApis, setLoadingApis] = useState(true);
@@ -55,17 +57,17 @@ export default function Dashboard({ onSelectApi, dbConnected }) {
         <SearchBar onSelect={onSelectApi} />
       </div>
 
-      {/* All APIs List */}
+      {/* Recent APIs List */}
       <div style={{ marginTop: '2rem' }}>
         <div className="list-card">
           <h3 className="list-card-title">
-            <ChevronRight size={20} style={{ color: 'var(--color-indigo)' }} /> All APIs
+            <ChevronRight size={20} style={{ color: 'var(--color-indigo)' }} /> Recent APIs
           </h3>
           {loadingApis ? (
-            <ListSkeleton count={6} />
+            <ListSkeleton count={RECENT_LIMIT} />
           ) : (
             <div className="recent-list">
-              {allApis.map((apiItem) => (
+              {allApis.slice(0, RECENT_LIMIT).map((apiItem) => (
                 <a
                   key={apiItem.name}
                   href="#"
