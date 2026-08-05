@@ -2,15 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Activity, ChevronRight, AlertCircle } from 'lucide-react';
 import api from '../services/api';
 import SearchBar from '../components/SearchBar';
-import { ListSkeleton, StatsSkeleton } from '../components/Skeletons';
+import { ListSkeleton } from '../components/Skeletons';
 
 export default function Dashboard({ onSelectApi, dbConnected }) {
   const [allApis, setAllApis] = useState([]);
   const [loadingApis, setLoadingApis] = useState(true);
-  
-  // Statistics State
-  const [stats, setStats] = useState(null);
-  const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
     if (!dbConnected) return;
@@ -27,20 +23,7 @@ export default function Dashboard({ onSelectApi, dbConnected }) {
       }
     };
 
-    const fetchStats = async () => {
-      try {
-        setLoadingStats(true);
-        const statsRes = await api.get('/dashboard/stats');
-        setStats(statsRes.data.stats || null);
-        setLoadingStats(false);
-      } catch (err) {
-        console.error('Error loading dashboard stats:', err);
-        setLoadingStats(false);
-      }
-    };
-
     fetchAllApis();
-    fetchStats();
   }, [dbConnected]);
 
   if (!dbConnected) {
@@ -64,65 +47,6 @@ export default function Dashboard({ onSelectApi, dbConnected }) {
           Understand What Breaks Before You Deploy
         </p>
       </div>
-
-      {/* Stats Cards Section */}
-      {loadingStats ? (
-        <StatsSkeleton />
-      ) : (
-        stats && (
-          <div className="dashboard-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
-            <div className="stats-card">
-              <div className="stats-icon-wrapper" style={{ backgroundColor: 'var(--node-page-bg)', color: 'var(--node-page-border)', fontSize: '1.5rem' }}>
-                🖥️
-              </div>
-              <div className="stats-details">
-                <h3>Frontend Pages</h3>
-                <div className="stats-value">{stats.pages}</div>
-              </div>
-            </div>
-
-            <div className="stats-card">
-              <div className="stats-icon-wrapper" style={{ backgroundColor: 'var(--node-api-bg)', color: 'var(--node-api-border)', fontSize: '1.5rem' }}>
-                🔌
-              </div>
-              <div className="stats-details">
-                <h3>APIs</h3>
-                <div className="stats-value">{stats.apis}</div>
-              </div>
-            </div>
-
-            <div className="stats-card">
-              <div className="stats-icon-wrapper" style={{ backgroundColor: 'var(--node-service-bg)', color: 'var(--node-service-border)', fontSize: '1.5rem' }}>
-                ⚙️
-              </div>
-              <div className="stats-details">
-                <h3>Microservices</h3>
-                <div className="stats-value">{stats.services}</div>
-              </div>
-            </div>
-
-            <div className="stats-card">
-              <div className="stats-icon-wrapper" style={{ backgroundColor: 'var(--node-db-bg)', color: 'var(--node-db-border)', fontSize: '1.5rem' }}>
-                🗄️
-              </div>
-              <div className="stats-details">
-                <h3>Databases</h3>
-                <div className="stats-value">{stats.databases}</div>
-              </div>
-            </div>
-
-            <div className="stats-card">
-              <div className="stats-icon-wrapper" style={{ backgroundColor: 'var(--node-team-bg)', color: 'var(--node-team-border)', fontSize: '1.5rem' }}>
-                🔗
-              </div>
-              <div className="stats-details">
-                <h3>Relationships</h3>
-                <div className="stats-value">{stats.relationships}</div>
-              </div>
-            </div>
-          </div>
-        )
-      )}
 
       {/* Search Section */}
       <div className="search-wrapper">
