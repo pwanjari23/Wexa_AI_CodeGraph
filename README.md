@@ -148,7 +148,7 @@ npm run dev
 ## Demo
 
 **Live Demo:** *[(Add deployment link)](https://wexa-ai-code-graph.vercel.app/)*
-[![Demo Video](thumbnail.png)](https://github.com/user-attachments/assets/xxxxx.mp4)
+[![Demo Video](thumbnail.png)](https://github.com/user-attachments/assets/demo.mp4)
 
 
 ---
