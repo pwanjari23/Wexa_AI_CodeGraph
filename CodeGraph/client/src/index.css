@@ -154,6 +154,11 @@ body {
   background-color: currentColor;
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 
 .main-content {
   flex: 1;

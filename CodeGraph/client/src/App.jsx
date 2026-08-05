@@ -1,28 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { Network, Database } from 'lucide-react';
+import { Network, Database, Loader2 } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import ApiDetails from './pages/ApiDetails';
 import api from './services/api';
 
 export default function App() {
   const [selectedApi, setSelectedApi] = useState(null);
-  const [dbConnected, setDbConnected] = useState(true);
+  const [dbConnected, setDbConnected] = useState(null); // null = still checking
 
   useEffect(() => {
+    let attempts = 0;
+
     const checkDbStatus = async () => {
       try {
         const res = await api.get('/health');
-        setDbConnected(res.data.database === 'Connected');
+        const connected = res.data.database === 'Connected';
+        setDbConnected(connected);
+        if (connected) attempts = 0; // reset on success
       } catch (err) {
-        console.error('Error fetching database status:', err);
-        setDbConnected(false);
+        attempts++;
+        console.warn(`Health check failed (attempt ${attempts}):`, err.message);
+        // Only mark as fully disconnected after 3 consecutive failures
+        if (attempts >= 3) setDbConnected(false);
+        else setDbConnected(null); // still "connecting"
       }
     };
+
     checkDbStatus();
-    // Poll status every 15 seconds to keep it dynamic
-    const interval = setInterval(checkDbStatus, 15000);
+    const interval = setInterval(checkDbStatus, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  // Badge styling based on connection state
+  const badgeConnected = dbConnected === true;
+  const badgeConnecting = dbConnected === null;
+  const badgeFailed = dbConnected === false;
 
   return (
     <div className="app-container">
@@ -34,12 +46,22 @@ export default function App() {
           <h1>CodeGraph</h1>
         </a>
         
-        <div className={`db-status-badge ${dbConnected ? 'connected' : 'disconnected'}`}
-             style={!dbConnected ? { backgroundColor: '#fef2f2', color: '#dc2626', borderColor: '#fca5a5' } : {}}
-             title={dbConnected ? "Connected to CognoDB Cloud" : "Database Unavailable"}>
-          <span className="db-dot" style={!dbConnected ? { backgroundColor: '#dc2626' } : {}} />
+        <div
+          className={`db-status-badge ${badgeConnected ? 'connected' : 'disconnected'}`}
+          style={badgeFailed ? { backgroundColor: '#fef2f2', color: '#dc2626', borderColor: '#fca5a5' }
+               : badgeConnecting ? { backgroundColor: '#fffbeb', color: '#92400e', borderColor: '#fde68a' }
+               : {}}
+          title={badgeConnected ? 'Connected to CognoDB Cloud' : badgeConnecting ? 'Waking up backend…' : 'Database Unavailable'}
+        >
+          {badgeConnecting
+            ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+            : <span className="db-dot" style={badgeFailed ? { backgroundColor: '#dc2626' } : {}} />}
           <Database size={14} />
-          <span>{dbConnected ? 'CognoDB Connected' : 'Database Unavailable'}</span>
+          <span>
+            {badgeConnected ? 'CognoDB Connected'
+             : badgeConnecting ? 'Connecting…'
+             : 'Database Unavailable'}
+          </span>
         </div>
       </header>
 
@@ -48,12 +70,12 @@ export default function App() {
           <ApiDetails 
             apiName={selectedApi} 
             onBack={() => setSelectedApi(null)} 
-            dbConnected={dbConnected}
+            dbConnected={dbConnected === true}
           />
         ) : (
           <Dashboard 
             onSelectApi={(name) => setSelectedApi(name)} 
-            dbConnected={dbConnected}
+            dbConnected={dbConnected === true}
           />
         )}
       </main>
