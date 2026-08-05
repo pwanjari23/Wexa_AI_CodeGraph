@@ -3,6 +3,7 @@ import { Network, Database, Loader2 } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import ApiDetails from './pages/ApiDetails';
 import api from './services/api';
+import { ListSkeleton } from './components/Skeletons';
 
 export default function App() {
   const [selectedApi, setSelectedApi] = useState(null);
@@ -43,7 +44,6 @@ export default function App() {
           <span className="brand-logo">
             <Network size={24} />
           </span>
-          <h1>CodeGraph</h1>
         </a>
         
         <div
@@ -66,7 +66,22 @@ export default function App() {
       </header>
 
       <main className="main-content">
-        {selectedApi ? (
+        {dbConnected === null ? (
+          // Still checking connection — show shimmer to avoid red flash
+          <div>
+            <div style={{ marginBottom: '2.5rem' }}>
+              <div className="skeleton-line" style={{ width: '200px', height: '28px', borderRadius: '8px' }} />
+              <div className="skeleton-line" style={{ width: '300px', marginTop: '0.5rem' }} />
+            </div>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <div className="skeleton-rect" style={{ width: '100%', height: '56px', borderRadius: '12px' }} />
+            </div>
+            <div className="list-card">
+              <div className="skeleton-line short" style={{ marginBottom: '1.5rem' }} />
+              <ListSkeleton count={5} />
+            </div>
+          </div>
+        ) : selectedApi ? (
           <ApiDetails 
             apiName={selectedApi} 
             onBack={() => setSelectedApi(null)} 
