@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Network, Database, Loader2 } from 'lucide-react';
+import { Database, Loader2 } from 'lucide-react';
+
 import Dashboard from './pages/Dashboard';
 import ApiDetails from './pages/ApiDetails';
 import api from './services/api';
@@ -7,7 +8,7 @@ import { ListSkeleton } from './components/Skeletons';
 
 export default function App() {
   const [selectedApi, setSelectedApi] = useState(null);
-  const [dbConnected, setDbConnected] = useState(null); // null = still checking
+  const [dbConnected, setDbConnected] = useState(null); 
 
   useEffect(() => {
     let attempts = 0;
@@ -21,9 +22,8 @@ export default function App() {
       } catch (err) {
         attempts++;
         console.warn(`Health check failed (attempt ${attempts}):`, err.message);
-        // Only mark as fully disconnected after 3 consecutive failures
         if (attempts >= 3) setDbConnected(false);
-        else setDbConnected(null); // still "connecting"
+        else setDbConnected(null); 
       }
     };
 
@@ -32,7 +32,6 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Badge styling based on connection state
   const badgeConnected = dbConnected === true;
   const badgeConnecting = dbConnected === null;
   const badgeFailed = dbConnected === false;
@@ -40,11 +39,8 @@ export default function App() {
   return (
     <div className="app-container">
       <header className="app-header">
-        <a href="#" className="brand" onClick={(e) => { e.preventDefault(); setSelectedApi(null); }}>
-          <span className="brand-logo">
-            <Network size={24} />
-          </span>
-        </a>
+        <div />
+
         
         <div
           className={`db-status-badge ${badgeConnected ? 'connected' : 'disconnected'}`}
@@ -67,7 +63,6 @@ export default function App() {
 
       <main className="main-content">
         {dbConnected === null ? (
-          // Still checking connection — show shimmer to avoid red flash
           <div>
             <div style={{ marginBottom: '2.5rem' }}>
               <div className="skeleton-line" style={{ width: '200px', height: '28px', borderRadius: '8px' }} />
