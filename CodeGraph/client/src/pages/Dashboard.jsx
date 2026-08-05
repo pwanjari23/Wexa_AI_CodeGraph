@@ -1,38 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, ChevronRight, GitFork, AlertCircle } from 'lucide-react';
+import { Activity, ChevronRight, AlertCircle } from 'lucide-react';
 import api from '../services/api';
 import SearchBar from '../components/SearchBar';
 import { ListSkeleton, StatsSkeleton } from '../components/Skeletons';
-import GraphVisualizer from '../components/GraphVisualizer';
 
 export default function Dashboard({ onSelectApi, dbConnected }) {
-  const [recent, setRecent] = useState([]);
-  const [loadingRecent, setLoadingRecent] = useState(true);
+  const [allApis, setAllApis] = useState([]);
+  const [loadingApis, setLoadingApis] = useState(true);
   
   // Statistics State
   const [stats, setStats] = useState(null);
   const [loadingStats, setLoadingStats] = useState(true);
 
-  // Shortest Path Finder State
-  const [allNodes, setAllNodes] = useState([]);
-  const [startNode, setStartNode] = useState('');
-  const [endNode, setEndNode] = useState('');
-  const [pathResult, setPathResult] = useState(null);
-  const [loadingPath, setLoadingPath] = useState(false);
-  const [pathError, setPathError] = useState(null);
-
   useEffect(() => {
     if (!dbConnected) return;
 
-    const fetchRecentApis = async () => {
+    const fetchAllApis = async () => {
       try {
-        setLoadingRecent(true);
-        const recentRes = await api.get('/dashboard/recent');
-        setRecent(recentRes.data.recentApis || []);
-        setLoadingRecent(false);
+        setLoadingApis(true);
+        const apisRes = await api.get('/apis');
+        setAllApis(apisRes.data.apis || []);
+        setLoadingApis(false);
       } catch (err) {
-        console.error('Error loading recent APIs:', err);
-        setLoadingRecent(false);
+        console.error('Error loading APIs:', err);
+        setLoadingApis(false);
       }
     };
 
@@ -48,40 +39,9 @@ export default function Dashboard({ onSelectApi, dbConnected }) {
       }
     };
 
-    const fetchAllNodes = async () => {
-      try {
-        const nodesRes = await api.get('/apis/all-nodes');
-        setAllNodes(nodesRes.data || []);
-      } catch (err) {
-        console.error('Error loading all nodes for pathfinder:', err);
-      }
-    };
-
-    fetchRecentApis();
+    fetchAllApis();
     fetchStats();
-    fetchAllNodes();
   }, [dbConnected]);
-
-  const handleFindPath = async (e) => {
-    e.preventDefault();
-    if (!startNode || !endNode) return;
-    
-    setLoadingPath(true);
-    setPathError(null);
-    setPathResult(null);
-
-    try {
-      const pathRes = await api.get('/apis/shortest-path', {
-        params: { start: startNode, end: endNode }
-      });
-      setPathResult(pathRes.data);
-    } catch (err) {
-      console.error('Error finding shortest path:', err);
-      setPathError('Could not calculate path between selected nodes.');
-    } finally {
-      setLoadingPath(false);
-    }
-  };
 
   if (!dbConnected) {
     return (
@@ -167,93 +127,21 @@ export default function Dashboard({ onSelectApi, dbConnected }) {
       {/* Search Section */}
       <div className="search-wrapper">
         <h3 className="search-title">API Dependency Search</h3>
-        <p className="search-subtitle">Type the name of any endpoint below to inspect its frontend usage and backend connections.</p>
+        <p className="search-subtitle">Select any endpoint below to inspect its frontend usage and backend connections.</p>
         <SearchBar onSelect={onSelectApi} />
       </div>
 
-      {/* Shortest Path Finder Section */}
-      <div className="search-wrapper">
-        <h3 className="search-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <GitFork size={20} style={{ color: 'var(--color-indigo)' }} /> Shortest Dependency Path
-        </h3>
-        <p className="search-subtitle">Select two nodes to discover the shortest path of connections between them.</p>
-        
-        <form onSubmit={handleFindPath} className="shortest-path-form">
-          <div className="input-label-group">
-            <label htmlFor="start-node">Start Node</label>
-            <select
-              id="start-node"
-              className="path-select"
-              value={startNode}
-              onChange={(e) => setStartNode(e.target.value)}
-            >
-              <option value="">-- Choose Node --</option>
-              {allNodes.map(node => (
-                <option key={`${node.label}-${node.name}`} value={node.name}>
-                  {node.name} ({node.label})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="input-label-group">
-            <label htmlFor="end-node">End Node</label>
-            <select
-              id="end-node"
-              className="path-select"
-              value={endNode}
-              onChange={(e) => setEndNode(e.target.value)}
-            >
-              <option value="">-- Choose Node --</option>
-              {allNodes.map(node => (
-                <option key={`${node.label}-${node.name}`} value={node.name}>
-                  {node.name} ({node.label})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <button
-            type="submit"
-            className="primary-btn"
-            disabled={loadingPath || !startNode || !endNode}
-          >
-            Find Path
-          </button>
-        </form>
-
-        {loadingPath && <ListSkeleton count={2} />}
-        
-        {pathError && (
-          <div style={{ color: 'var(--risk-high)', fontSize: '0.875rem', marginTop: '1rem' }}>
-            {pathError}
-          </div>
-        )}
-
-        {pathResult && pathResult.nodes && pathResult.nodes.length > 0 && (
-          <div style={{ marginTop: '1.5rem', height: '400px', border: '1px solid var(--border-color)', borderRadius: '12px', overflow: 'hidden' }}>
-            <GraphVisualizer nodes={pathResult.nodes} edges={pathResult.edges} />
-          </div>
-        )}
-
-        {pathResult && (!pathResult.nodes || pathResult.nodes.length === 0) && !loadingPath && (
-          <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)', fontSize: '0.9rem', backgroundColor: 'var(--bg-app)', borderRadius: '12px', marginTop: '1rem' }}>
-            No path exists between "{startNode}" and "{endNode}" in the current architecture graph.
-          </div>
-        )}
-      </div>
-
-      {/* Recent APIs Section */}
+      {/* All APIs List */}
       <div style={{ marginTop: '2rem' }}>
         <div className="list-card">
           <h3 className="list-card-title">
-            <ChevronRight size={20} style={{ color: 'var(--color-indigo)' }} /> Recent APIs
+            <ChevronRight size={20} style={{ color: 'var(--color-indigo)' }} /> All APIs
           </h3>
-          {loadingRecent ? (
-            <ListSkeleton count={4} />
+          {loadingApis ? (
+            <ListSkeleton count={6} />
           ) : (
             <div className="recent-list">
-              {recent.map((apiItem) => (
+              {allApis.map((apiItem) => (
                 <a
                   key={apiItem.name}
                   href="#"
@@ -267,11 +155,12 @@ export default function Dashboard({ onSelectApi, dbConnected }) {
                     <span className="recent-name">{apiItem.name}</span>
                     <span className="recent-desc">{apiItem.description}</span>
                   </div>
+                  <ChevronRight size={16} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
                 </a>
               ))}
-              {recent.length === 0 && (
+              {allApis.length === 0 && (
                 <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                  No API records available in the graph. Run seed command.
+                  No API records available in the graph.
                 </div>
               )}
             </div>
