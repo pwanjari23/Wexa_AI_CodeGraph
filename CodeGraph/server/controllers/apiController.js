@@ -52,10 +52,34 @@ const getApiImpact = async (req, res, next) => {
   }
 };
 
+const getAllNodes = async (req, res, next) => {
+  try {
+    const data = await graphService.getAllNodes();
+    res.json(data.nodes);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getShortestPath = async (req, res, next) => {
+  try {
+    const { start, end } = req.query;
+    if (!start || !end) {
+      return res.status(400).json({ error: 'Start and end nodes are required parameters.' });
+    }
+    const data = await graphService.getShortestPath(start, end);
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   listApis,
   searchApis,
   getApiMetadata,
   getApiDependencies,
-  getApiImpact
+  getApiImpact,
+  getAllNodes,
+  getShortestPath
 };

@@ -3,6 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const { closeDriver } = require('./config/db');
+const { checkConnection } = require('./services/graphService');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const apiRoutes = require('./routes/apiRoutes');
 
@@ -10,7 +11,11 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Enable CORS for client requests
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // Log incoming request paths
@@ -23,9 +28,45 @@ app.use((req, res, next) => {
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/apis', apiRoutes);
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'healthy', timestamp: new Date() });
+// Health check endpoints
+app.get('/', (req, res) => {
+  res.send('CodeGraph Backend API is running! Use /health to check status.');
+});
+
+app.get('/health', async (req, res) => {
+  const isConnected = await checkConnection();
+  if (isConnected) {
+    res.json({
+      status: "OK",
+      service: "CodeGraph API",
+      database: "Connected",
+      version: "1.0.0"
+    });
+  } else {
+    res.status(503).json({
+      status: "ERROR",
+      service: "CodeGraph API",
+      database: "Unavailable"
+    });
+  }
+});
+
+app.get('/api/health', async (req, res) => {
+  const isConnected = await checkConnection();
+  if (isConnected) {
+    res.json({
+      status: "OK",
+      service: "CodeGraph API",
+      database: "Connected",
+      version: "1.0.0"
+    });
+  } else {
+    res.status(503).json({
+      status: "ERROR",
+      service: "CodeGraph API",
+      database: "Unavailable"
+    });
+  }
 });
 
 // Global Error Handler

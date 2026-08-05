@@ -1,8 +1,9 @@
 const GET_STATS_CARD_DATA = `
-  OPTIONAL MATCH (a:API) WITH count(a) as apis
-  OPTIONAL MATCH (s:Service) WITH apis, count(s) as services
-  OPTIONAL MATCH (d:Database) WITH apis, services, count(d) as databases
-  OPTIONAL MATCH (f:FrontendPage) RETURN apis, services, databases, count(f) as pages
+  OPTIONAL MATCH (f:FrontendPage) WITH count(f) as pages
+  OPTIONAL MATCH (a:API) WITH pages, count(a) as apis
+  OPTIONAL MATCH (s:Service) WITH pages, apis, count(s) as services
+  OPTIONAL MATCH (d:Database) WITH pages, apis, services, count(d) as databases
+  OPTIONAL MATCH ()-[r]->() RETURN pages, apis, services, databases, count(r) as relationships
 `;
 
 const GET_RECENT_APIS = `

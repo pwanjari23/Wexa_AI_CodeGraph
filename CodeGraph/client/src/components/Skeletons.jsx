@@ -1,8 +1,8 @@
 import React from 'react';
 
 export const StatsSkeleton = () => (
-  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem', width: '100%' }}>
-    {[1, 2, 3, 4].map(n => (
+  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.5rem', marginBottom: '2rem', width: '100%' }}>
+    {[1, 2, 3, 4, 5].map(n => (
       <div key={n} className="stats-card" style={{ opacity: 0.7 }}>
         <div className="skeleton-rect" style={{ width: '48px', height: '48px', margin: 0, borderRadius: '12px' }} />
         <div style={{ flex: 1 }}>

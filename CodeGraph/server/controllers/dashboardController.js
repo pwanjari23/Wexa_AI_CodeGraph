@@ -9,6 +9,16 @@ const getRecentApis = async (req, res, next) => {
   }
 };
 
+const getStats = async (req, res, next) => {
+  try {
+    const statsData = await graphService.getStats();
+    res.json(statsData);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
-  getRecentApis
+  getRecentApis,
+  getStats
 };
